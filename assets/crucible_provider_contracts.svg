@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">crucible_provider_contracts logo</title>
+  <desc id="desc">A midnight hexagonal blueprint with gold/amber interlocking contract nodes and secure interface lattice lines.</desc>
+  <defs>
+    <linearGradient id="hex" x1="28" y1="24" x2="172" y2="176" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f1926"/>
+      <stop offset="0.52" stop-color="#050e18"/>
+      <stop offset="1" stop-color="#02060a"/>
+    </linearGradient>
+    <radialGradient id="pulse" cx="50%" cy="44%" r="54%">
+      <stop offset="0" stop-color="#ffb300" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#ffb300" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#ffe082" stroke-opacity="0.10" stroke-width="0.8"/>
+    </pattern>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="clip">
+      <polygon points="100,12 176,56 176,144 100,188 24,144 24,56"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <polygon points="100,12 176,56 176,144 100,188 24,144 24,56" fill="url(#hex)"/>
+    <rect width="200" height="200" fill="url(#grid)"/>
+    <circle cx="100" cy="96" r="84" fill="url(#pulse)"/>
+    
+    <!-- Central Interlocking Contract Rings & Hexagon Interface -->
+    <polygon points="100,52 138,74 138,118 100,140 62,118 62,74" fill="none" stroke="#ffe082" stroke-opacity="0.25" stroke-width="1.5"/>
+    <polygon points="100,42 147,69 147,123 100,150 53,123 53,69" fill="none" stroke="#00e5ff" stroke-opacity="0.20" stroke-width="1.2"/>
+    
+    <!-- Intersecting Interface Paths -->
+    <path d="M100 36 V96" fill="none" stroke="#ffb300" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>
+    <path d="M48 126 L100 96" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>
+    <path d="M152 126 L100 96" fill="none" stroke="#ffb300" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>
+    
+    <!-- Outer Connecting Nodes -->
+    <path d="M100 36 C124 36 148 50 162 70 M38 70 C52 50 76 36 100 36 M38 122 C38 98 52 78 68 70 M162 122 C162 98 148 78 132 70" fill="none" stroke="#ffb300" stroke-width="2" stroke-linecap="round" stroke-dasharray="3,3"/>
+    
+    <!-- Glowing Node Terminals -->
+    <g fill="#ffffff" stroke="#ffb300" stroke-width="2">
+      <circle cx="100" cy="36" r="4.5" filter="url(#glow)"/>
+      <circle cx="48" cy="126" r="4.5" stroke="#00e5ff" filter="url(#glow)"/>
+      <circle cx="152" cy="126" r="4.5" filter="url(#glow)"/>
+      <circle cx="100" cy="96" r="6" stroke="#ffe082" filter="url(#glow)"/>
+    </g>
+    
+    <!-- Structural Horizontal Blueprint Markings -->
+    <path d="M52 160 L148 160 M68 36 L132 36" stroke="#ffe082" stroke-opacity="0.3" stroke-width="1.5"/>
+  </g>
+  <polygon points="100,12 176,56 176,144 100,188 24,144 24,56" fill="none" stroke="#ffe082" stroke-width="3"/>
+</svg>
