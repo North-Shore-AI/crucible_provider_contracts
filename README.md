@@ -59,22 +59,23 @@ defmodule Crucible.Provider do
   @callback init(opts) :: {:ok, state} | {:error, term}
 
   @doc "Inspects and returns the available model surface (layers, parameters, tensors)."
-  @callback surface(state, model_ref, opts) :: {:ok, Crucible.Surface.t()} | {:error, term}
+  @callback surface(state, model_ref, opts) ::
+              {:ok, CrucibleTap.Surface.t()} | {:error, term}
 
   @doc "Retrieves the standard capability report from the provider."
   @callback capabilities(state) :: {:ok, Crucible.CapabilityReport.t()} | {:error, term}
 
   @doc "Compiles a TapPlan against the model surface into a CompiledPlan."
-  @callback compile(state, Crucible.TapPlan.t(), Crucible.Surface.t(), opts) ::
-              {:ok, Crucible.CompiledPlan.t()} | {:error, term}
+  @callback compile(state, CrucibleTap.TapPlan.t(), CrucibleTap.Surface.t(), opts) ::
+              {:ok, CrucibleTap.CompiledPlan.t()} | {:error, term}
 
   @doc "Executes a standard forward pass producing a ForwardTrace."
-  @callback forward(state, inputs, Crucible.CompiledPlan.t(), opts) ::
+  @callback forward(state, inputs, CrucibleTap.CompiledPlan.t() | nil, opts) ::
               {:ok, Crucible.ForwardTrace.t()} | {:error, term}
 
-  @doc "Executes a text/token generation step producing a ForwardTrace."
-  @callback generate(state, inputs, Crucible.CompiledPlan.t(), opts) ::
-              {:ok, Crucible.ForwardTrace.t()} | {:error, term}
+  @doc "Executes a text/token generation step producing a provider result."
+  @callback generate(state, inputs, CrucibleTap.CompiledPlan.t() | nil, opts) ::
+              {:ok, Crucible.ForwardTrace.t() | term()} | {:error, term}
 
   @doc "Returns true if the provider is fully ready to accept execution."
   @callback ready?(state) :: boolean()
@@ -121,9 +122,9 @@ To ensure robust data boundaries across provider implementations, `CrucibleProvi
 Every new provider must pass the standard contract test suite to be accepted by the self-hosted inference core (`SHIC`). The verification suite ensures:
 
 - Proper response to initialization parameters and graceful shutdown.
-- Valid capability report serialization matching the target architecture.
-- Rejection of invalid inputs with standard `ProviderError` structures.
-- Sound emission of temporal and origin tags on all signal/trace records.
+- Canonical `CrucibleTap.Surface`, `Crucible.CapabilityReport`,
+  `CrucibleTap.CompiledPlan`, and `Crucible.ForwardTrace` return shapes.
+- Sound emission of trace identifiers and final forward-pass trace records.
 
 For example, when writing a custom MuJoCo simulator provider, you can mix in the contract tests:
 
@@ -132,11 +133,16 @@ defmodule Crucible.Provider.MujocoProviderTest do
   use ExUnit.Case, async: true
   
   # Inject standard compliance assertions
-  use Crucible.Provider.ContractTest,
-    provider: Crucible.Provider.Mujoco,
-    init_opts: [scene: :double_pendulum]
+use Crucible.Provider.ContractTest,
+  provider: Crucible.Provider.Mujoco,
+  init_opts: [scene: :double_pendulum],
+  model_ref: "mujoco:double_pendulum",
+  input: %{state: [0.0, 0.0]}
 end
 ```
+
+See [Provider ABI Migration](guides/provider_abi_migration.md) for callback
+shape requirements and adapter guidance.
 
 ## Testing
 

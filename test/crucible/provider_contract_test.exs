@@ -8,23 +8,37 @@ defmodule Crucible.Provider.ContractVerificationTest do
     end
 
     def surface(_state, _model_ref, _opts) do
-      {:ok, :mock_surface}
+      {:ok, surface()}
     end
 
     def capabilities(_state) do
-      {:ok, :mock_capabilities}
+      {:ok,
+       Crucible.CapabilityReport.new(
+         provider_kind: :model,
+         model_id: "mock-model-v1",
+         model_family: :mock_transformer,
+         backend: :mock_backend,
+         supported: ["contract-final-logits"]
+       )}
     end
 
-    def compile(_state, _tap_plan, _surface, _opts) do
-      {:ok, :mock_compiled_plan}
+    def compile(_state, tap_plan, surface, _opts) do
+      case Crucible.CapabilityReport.negotiate(tap_plan, surface,
+             provider_kind: :model,
+             model_id: "mock-model-v1",
+             backend: :mock_backend
+           ) do
+        {:ok, compiled, _report} -> {:ok, compiled}
+        {:error, reason} -> {:error, reason}
+      end
     end
 
     def forward(_state, _inputs, _compiled_plan, _opts) do
-      {:ok, :mock_trace}
+      {:ok, trace()}
     end
 
     def generate(_state, _inputs, _compiled_plan, _opts) do
-      {:ok, :mock_trace}
+      {:ok, trace()}
     end
 
     def ready?(state) do
@@ -56,6 +70,64 @@ defmodule Crucible.Provider.ContractVerificationTest do
 
     def shutdown(_state, _reason) do
       :ok
+    end
+
+    defp surface do
+      CrucibleTap.Surface.new!(
+        adapter: :mock,
+        model_family: :mock_transformer,
+        metadata: %{surface_id: :mock_transformer},
+        nodes: [
+          [
+            id: "lm_head.output",
+            signal_type: :final_logits,
+            layer_name: "lm_head.output",
+            layer_index: :final,
+            operations: [:read],
+            capture_modes: [:summary]
+          ]
+        ]
+      )
+    end
+
+    defp trace do
+      trace_id = "trace-contract"
+      run_id = "run-contract"
+      logits = Nx.tensor([[0.1, 0.4, 0.2]], type: :f32)
+      summary = Crucible.TensorSummary.compute(logits, entropy: true, top_k: 3)
+
+      signal =
+        Crucible.SignalRecord.new!(
+          signal_id: "sig-contract-final-logits",
+          trace_id: trace_id,
+          run_id: run_id,
+          signal_type: :final_logits,
+          provider_kind: :model,
+          model_id: "mock-model-v1",
+          model_family: :mock_transformer,
+          backend: :mock_backend,
+          dtype: summary.dtype,
+          shape: summary.shape,
+          rank: summary.rank,
+          node_name: "lm_head.output",
+          capture_method: :contract_test,
+          surface_id: :mock_transformer,
+          capability_status: :captured,
+          tensor_summary: summary,
+          metadata: %{}
+        )
+
+      Crucible.ForwardTrace.new!(
+        trace_id: trace_id,
+        run_id: run_id,
+        provider_kind: :model,
+        model_id: "mock-model-v1",
+        model_family: :mock_transformer,
+        backend: :mock_backend,
+        final_logits: signal,
+        signals: [signal],
+        status: :ok
+      )
     end
   end
 

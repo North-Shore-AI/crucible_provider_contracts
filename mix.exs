@@ -40,6 +40,7 @@ defmodule CrucibleProviderContracts.MixProject do
   defp deps do
     [
       {:crucible_signal, path: "../crucible_signal"},
+      {:crucible_signal_trace, path: "../crucible_signal_trace"},
       {:crucible_tap, path: "../crucible_tap"},
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.40.1", only: [:dev, :test], runtime: false}
