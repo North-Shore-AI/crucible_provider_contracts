@@ -114,6 +114,7 @@ To ensure robust data boundaries across provider implementations, `CrucibleProvi
 2. **`Crucible.Provider.ProviderHealth`**: Stores uptime, latencies, memory pressure, and status logs.
 3. **`Crucible.Provider.ProviderError`**: Formally maps errors into a standard taxonomy (e.g., `:compilation_failed`, `:resource_locked`, `:out_of_bounds_input`, `:telemetry_dropped`).
 4. **`Crucible.Provider.TraceEmission`**: Encapsulates tracing obligations, ensuring output traces contain mandatory temporal annotations and source environment tags (`:sim`, `:real`, etc.).
+5. **`Crucible.Provider.MechInterpCapabilities`**: Standardizes provider claims for model-internals capture groups, canonical activations, KV-cache metadata, generation traces, lazy tensor refs, and intervention support.
 
 ---
 
