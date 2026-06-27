@@ -10,6 +10,8 @@ defmodule Crucible.Provider.MechInterpCapabilitiesTest do
         model_family: :qwen3,
         backend: :emlx,
         capture_groups: [:cache_metadata, :attention_qkv, :residual_streams],
+        required_capture_groups: [:attention_qkv],
+        required_activations: ["blocks.0.attn.hook_q"],
         activations: %{
           "blocks.0.attn.hook_q" => %{axes: [:batch, :head, :position, :head_dim]},
           "unembed.hook_logits" => %{axes: [:batch, :d_vocab]}
@@ -23,6 +25,8 @@ defmodule Crucible.Provider.MechInterpCapabilitiesTest do
       )
 
     assert capabilities.provider == :emlx_qwen3
+    assert capabilities.required_capture_groups == [:attention_qkv]
+    assert capabilities.required_activations == ["blocks.0.attn.hook_q"]
     assert MechInterpCapabilities.supports?(capabilities, :generation_trace)
     assert MechInterpCapabilities.supports?(capabilities, :cache_metadata)
     assert MechInterpCapabilities.supports?(capabilities, :lazy_tensors)
@@ -41,5 +45,61 @@ defmodule Crucible.Provider.MechInterpCapabilitiesTest do
 
     assert {:error, :invalid_activations} =
              MechInterpCapabilities.new(activations: %{hook_logits: %{}})
+  end
+
+  test "emission validation fails when a provider claims QKV without emitting QKV" do
+    capabilities =
+      MechInterpCapabilities.new!(
+        provider: :native_fixture,
+        capture_groups: [:attention_qkv],
+        activations: %{
+          "blocks.0.attn.hook_q" => %{axes: [:batch, :pos, :head, :d_head]},
+          "blocks.0.attn.hook_k" => %{axes: [:batch, :pos, :head, :d_head]},
+          "blocks.0.attn.hook_v" => %{axes: [:batch, :pos, :head, :d_head]}
+        }
+      )
+
+    assert {:error, {:capability_emission_mismatch, reasons}} =
+             MechInterpCapabilities.validate_emissions(
+               capabilities,
+               ["blocks.0.attn.hook_q"],
+               require_claimed_activations?: true
+             )
+
+    assert {:missing_claimed_activations, ["blocks.0.attn.hook_k", "blocks.0.attn.hook_v"]} in reasons
+  end
+
+  test "emission validation checks required capture, logit lens, generation, and interventions" do
+    capabilities =
+      MechInterpCapabilities.new!(
+        provider: :native_fixture,
+        capture_groups: [:residual_streams, :logit_lens],
+        required_capture_groups: [:residual_streams],
+        required_activations: ["blocks.0.hook_resid_pre", "unembed.hook_logits"],
+        activations: %{
+          "blocks.0.hook_resid_pre" => %{axes: [:batch, :pos, :d_model]},
+          "unembed.hook_logits" => %{axes: [:batch, :pos, :d_vocab]}
+        },
+        generation_trace: true,
+        interventions: %{residual: true}
+      )
+
+    assert MechInterpCapabilities.supports?(capabilities, :generation_trace)
+    assert MechInterpCapabilities.supports?(capabilities, {:intervention, :residual})
+
+    assert :ok =
+             MechInterpCapabilities.validate_emissions(capabilities, %{
+               activations: %{
+                 "blocks.0.hook_resid_pre" => :lazy_tensor_ref,
+                 "unembed.hook_logits" => :summary
+               }
+             })
+
+    assert {:error, {:capability_emission_mismatch, reasons}} =
+             MechInterpCapabilities.validate_emissions(capabilities, %{
+               signals: [%{metadata: %{activation_name: "blocks.0.hook_resid_pre"}}]
+             })
+
+    assert {:missing_required_activations, ["unembed.hook_logits"]} in reasons
   end
 end
