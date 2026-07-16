@@ -43,7 +43,7 @@ defmodule CrucibleProviderContracts.MixProject do
       {:crucible_signal_trace, path: "../crucible_signal_trace"},
       {:crucible_tap, path: "../crucible_tap"},
       {:jason, "~> 1.4"},
-      {:ex_doc, "~> 0.40.1", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.40.3", only: [:dev, :test], runtime: false}
     ]
   end
 
